@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>壁纸商店</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #c8a96e;
+    --accent2: #7c6dfa;
+    --text: #e8e4dd;
+    --muted: #6e6e8a;
+    --danger: #e05c5c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124,109,250,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(200,169,110,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .logo span { color: var(--text); font-weight: 400; }
+
+  .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+  /* Buttons */
+  .btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-weight: 500;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+  }
+  .btn-primary:hover { background: #d4b87a; transform: translateY(-1px); }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+  .btn-danger:hover { background: #c94f4f; }
+
+  /* Main */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  /* Hero text */
+  .hero {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Grid */
+  .wallpaper-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .card:hover {
+    border-color: rgba(200,169,110,0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(200,169,110,0.1);
+  }
+
+  .card-image {
+    width: 100%;
+    aspect-ratio: 16/10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .card-placeholder {
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 2rem;
+  }
+
+  .card-body {
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-info h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+  }
+
+  .card-info .res {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .card-price {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .card-price.free { color: #6bcf8a; }
+
+  .card-actions {
+    padding: 0 1.2rem 1.2rem;
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .card-actions .btn { flex: 1; text-align: center; font-size: 0.8rem; padding: 0.45rem 0.8rem; }
+
+  /* Admin controls on card */
+  .admin-card-controls {
+    padding: 0 1.2rem 0.6rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .admin-card-controls .btn { font-size: 0.75rem; padding: 0.3rem 0.7rem; }
+
+  /* Empty state */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 5rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+  .empty-state p { font-size: 0.95rem; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.03em;
+  }
+
+  .form-group input, .form-group textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .form-group input[type="file"] {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .modal-footer .btn { flex: 1; padding: 0.7rem; text-align: center; }
+
+  /* Preview modal */
+  /* Preview Modal */
+  .preview-modal {
+    max-width: 92vw;
+    max-height: 92vh;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 60vh;
+    overflow: hidden;
+    background: #000;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .preview-img-wrap.dragging { cursor: grabbing; }
+
+  .preview-img-wrap img {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform-origin: center center;
+    display: block;
+    max-width: none;
+    transition: none;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .preview-zoom-bar {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    z-index: 10;
+  }
+
+  .zoom-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    line-height: 1;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+  }
+  .zoom-btn:hover { opacity: 1; }
+
+  .zoom-pct {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.8);
+    min-width: 3rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .zoom-reset-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.72rem;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    border-left: 1px solid rgba(255,255,255,0.2);
+    margin-left: 0.2rem;
+  }
+  .zoom-reset-btn:hover { color: #fff; }
+
+  .preview-modal-body {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+  .preview-modal-info h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .preview-modal-info p { color: var(--muted); font-size: 0.82rem; }
+
+  .preview-modal-price {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .preview-modal-footer {
+    padding: 0 1.5rem 1.2rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .preview-modal-footer .btn { flex: 1; padding: 0.75rem; text-align: center; font-size: 0.9rem; }
+
+  /* Admin panel */
+  .admin-bar {
+    background: rgba(124,109,250,0.08);
+    border: 1px solid rgba(124,109,250,0.2);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--accent2);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .admin-badge::before {
+    content: '●';
+    font-size: 0.5rem;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    z-index: 300;
+    transition: transform 0.3s;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: #6bcf8a; color: #6bcf8a; }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* QR Payment Modal */
+  .qr-modal {
+    max-width: 380px;
+    text-align: center;
+    padding: 1.5rem 1.5rem 2rem;
+  }
+
+  .qr-modal-header {
+    margin-bottom: 1.2rem;
+  }
+
+  .qr-modal-header h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .qr-modal-header .qr-subtitle {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  /* Payment Tabs */
+  .pay-tabs {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 1.4rem;
+  }
+
+  .pay-tab {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .pay-tab:first-child { border-right: 1px solid var(--border); }
+
+  .pay-tab.active.wechat {
+    background: #07C160;
+    color: white;
+  }
+
+  .pay-tab.active.alipay {
+    background: #1677FF;
+    color: white;
+  }
+
+  .pay-tab:not(.active):hover { color: var(--text); }
+
+  /* QR panel */
+  .pay-panel { display: none; }
+  .pay-panel.active { display: block; }
+
+  .qr-box {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .qr-box img {
+    width: 190px;
+    height: 190px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .qr-amount {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+
+  .qr-hint {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+  }
+
+  .qr-no-img {
+    width: 190px;
+    height: 190px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin: 0 auto 1rem;
+  }
+
+  /* Payment Settings Modal */
+  .pay-settings-modal { max-width: 480px; }
+
+  .pay-settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pay-setting-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .pay-setting-card .pay-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .pay-setting-card .pay-label.wechat { color: #07C160; }
+  .pay-setting-card .pay-label.alipay { color: #1677FF; }
+
+  .pay-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    background: var(--surface);
+  }
+
+  .pay-thumb:hover { border-color: var(--accent); }
+
+  .pay-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .pay-thumb-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    width: 100%;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  @media (max-width: 600px) {
+    header { padding: 0 1rem; }
+    main { padding: 2rem 1rem; }
+    .preview-modal-body { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">壁<span>纸</span>阁</div>
+  <div class="header-actions">
+    <span id="adminStatus" style="display:none" class="admin-badge">管理员模式</span>
+    <button class="btn btn-ghost" id="adminToggleBtn" onclick="openAdminLogin()">管理员登录</button>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>精选<em>壁纸</em>收藏</h1>
+    <p>每一张都是精心挑选的视觉艺术</p>
+  </div>
+
+  <!-- Admin bar (only visible to admin) -->
+  <div class="admin-bar" id="adminBar" style="display:none">
+    <div class="admin-badge">管理员模式已激活</div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="openUploadModal()">＋ 上传壁纸</button>
+      <button class="btn btn-ghost" onclick="openPaySettings()" style="color:var(--accent2);border-color:rgba(124,109,250,0.3)">💳 收款设置</button>
+      <button class="btn btn-ghost" onclick="logoutAdmin()">退出管理员</button>
+    </div>
+  </div>
+
+  <!-- Wallpaper Grid -->
+  <div class="wallpaper-grid" id="wallpaperGrid">
+  </div>
+</main>
+
+<!-- Payment QR Modal (dual tab) -->
+<div class="modal-overlay" id="qrModal" onclick="if(event.target===this)closeModal('qrModal')">
+  <div class="modal qr-modal">
+    <div class="qr-modal-header">
+      <h2 id="qrWallpaperName"></h2>
+      <div class="qr-subtitle">请选择支付方式</div>
+    </div>
+    <div class="pay-tabs">
+      <button class="pay-tab wechat active" id="tabWechat" onclick="switchPayTab('wechat')">
+        <span>微信支付</span>
+      </button>
+      <button class="pay-tab alipay" id="tabAlipay" onclick="switchPayTab('alipay')">
+        <span>支付宝</span>
+      </button>
+    </div>
+    <!-- Wechat Panel -->
+    <div class="pay-panel active" id="panelWechat">
+      <div class="qr-amount" id="qrAmountWechat"></div>
+      <div class="qr-box" id="wechatQrBox">
+        <img id="qrImgWechat" src="" alt="微信收款码">
+      </div>
+      <div id="wechatNoQr" class="qr-no-img" style="display:none">未设置收款码</div>
+      <p class="qr-hint">请使用微信扫描二维码付款<br>付款后截图联系商家获取壁纸</p>
+    </div>
+    <!-- Alipay Panel -->
+    <div class="pay-panel" id="panelAlipay">
+      <div class="qr-amount" id="qrAmountAlipay"></div>
+      <div class="qr-box" id="alipayQrBox">
+        <img id="qrImgAlipay" src="" alt="支付宝收款码">
+      </div>
+      <div id="alipayNoQr" class="qr-no-img" style="display:none">未设置收款码</div>
+      <p class="qr-hint">请使用支付宝扫描二维码付款<br>付款后截图联系商家获取壁纸</p>
+    </div>
+    <button class="btn btn-ghost" style="width:100%" onclick="closeModal('qrModal')">关闭</button>
+  </div>
+</div>
+
+<!-- Payment Settings Modal -->
+<div class="modal-overlay" id="paySettingsModal" onclick="if(event.target===this)closeModal('paySettingsModal')">
+  <div class="modal pay-settings-modal">
+    <h2>💳 收款设置</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1.2rem">设置后，所有付费壁纸均使用这里的收款码</p>
+
+    <!-- Unified Price -->
+    <div class="form-group" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.2rem">
+      <label style="font-size:0.9rem;font-weight:500;color:var(--text);margin-bottom:0.6rem;display:block">默认价格</label>
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <span style="color:var(--accent);font-size:1.1rem;font-weight:600">¥</span>
+        <input type="number" id="unifiedPriceInput" min="0" step="0.01" placeholder="留空则不启用" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:0.5rem 0.8rem;color:var(--text);font-size:0.95rem;outline:none;font-family:inherit">
+        <button class="btn btn-primary" style="padding:0.5rem 1rem;white-space:nowrap" onclick="saveUnifiedPrice()">保存</button>
+      </div>
+      <p style="color:var(--muted);font-size:0.75rem;margin-top:0.5rem">上传壁纸时自动预填此价格，可手动修改</p>
+    </div>
+
+    <div class="pay-settings-grid">
+      <!-- Wechat -->
+      <div class="pay-setting-card">
+        <div class="pay-label wechat">微信支付</div>
+        <div class="pay-thumb" id="wechatThumb" onclick="document.getElementById('wechatQrInput').click()">
+          <span id="wechatThumbText">点击上传</span>
+        </div>
+        <input type="file" id="wechatQrInput" accept="image/*" style="display:none" onchange="handlePayQrUpload('wechat')">
+        <button class="btn btn-ghost pay-thumb-btn" onclick="document.getElementById('wechatQrInput').click()">更换图片</button>
+      </div>
+      <!-- Alipay -->
+      <div class="pay-setting-card">
+        <div class="pay-label alipay">支付宝</div>
+        <div class="pay-thumb" id="alipayThumb" onclick="document.getElementById('alipayQrInput').click()">
+          <span id="alipayThumbText">点击上传</span>
+        </div>
+        <input type="file" id="alipayQrInput" accept="image/*" style="display:none" onchange="handlePayQrUpload('alipay')">
+        <button class="btn btn-ghost pay-thumb-btn" onclick="document.getElementById('alipayQrInput').click()">更换图片</button>
+      </div>
+    </div>
+    <div class="modal-footer" style="margin-top:0">
+      <button class="btn btn-ghost" onclick="closeModal('paySettingsModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Admin Login Modal -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <h2>🔐 管理员验证</h2>
+    <div class="form-group">
+      <label>管理员密码</label>
+      <input type="password" id="adminPasswordInput" placeholder="输入密码" onkeydown="if(event.key==='Enter')verifyAdmin()">
+    </div>
+    <div id="loginError" style="color:var(--danger);font-size:0.85rem;margin-top:-0.5rem;margin-bottom:0.5rem;display:none">密码错误，请重试</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('loginModal')">取消</button>
+      <button class="btn btn-primary" onclick="verifyAdmin()">验证</button>
+    </div>
+  </div>
+</div>
+
+<!-- Set Password Modal (first time) -->
+<div class="modal-overlay" id="setPasswordModal">
+  <div class="modal">
+    <h2>⚙️ 首次设置密码</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem">这是你第一次使用管理员功能，请设置一个密码。</p>
+    <div class="form-group">
+      <label>新密码</label>
+      <input type="password" id="newPassword1" placeholder="输入新密码">
+    </div>
+    <div class="form-group">
+      <label>确认密码</label>
+      <input type="password" id="newPassword2" placeholder="再次输入密码" onkeydown="if(event.key==='Enter')setInitialPassword()">
+    </div>
+    <div id="setPasswordError" style="color:var(--danger);font-size:0.85rem;margin-top:-0.5rem;margin-bottom:0.5rem;display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="setInitialPassword()">确认设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <h2>上传壁纸</h2>
+    <div class="form-group">
+      <label>壁纸名称</label>
+      <input type="text" id="uploadName" placeholder="例：极光之夜">
+    </div>
+    <div class="form-group">
+      <label>选择图片</label>
+      <input type="file" id="uploadFile" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label>价格（元）</label>
+      <input type="number" id="uploadPrice" placeholder="0 = 免费" min="0" step="0.01" value="0">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('uploadModal')">取消</button>
+      <button class="btn btn-primary" onclick="uploadWallpaper()">上传</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>编辑壁纸</h2>
+    <input type="hidden" id="editId">
+    <div class="form-group">
+      <label>壁纸名称</label>
+      <input type="text" id="editName">
+    </div>
+    <div class="form-group">
+      <label>价格（元）</label>
+      <input type="number" id="editPrice" min="0" step="0.01">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal" onclick="handlePreviewOverlayClick(event)">
+  <div class="modal preview-modal">
+    <div class="preview-img-wrap" id="previewImgWrap">
+      <img id="previewImg" src="" alt="">
+      <div class="preview-zoom-bar">
+        <button class="zoom-btn" onclick="zoomBy(-0.25)" title="缩小">－</button>
+        <span class="zoom-pct" id="zoomPct">100%</span>
+        <button class="zoom-btn" onclick="zoomBy(0.25)" title="放大">＋</button>
+        <button class="zoom-reset-btn" onclick="fitImage()" title="适应窗口">适应</button>
+      </div>
+    </div>
+    <div class="preview-modal-body">
+      <div class="preview-modal-info">
+        <h3 id="previewName"></h3>
+        <p id="previewRes"></p>
+      </div>
+      <div class="preview-modal-price" id="previewPrice"></div>
+    </div>
+    <div class="preview-modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('previewModal')">关闭</button>
+      <button class="btn btn-primary" id="previewBuyBtn" onclick="handleBuy()">立即购买</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+const STORAGE_KEY = 'wallpaper_shop_data';
+const ADMIN_KEY = 'wallpaper_admin_pw';
+let isAdmin = false;
+let currentPreview = null;
+
+// ===== SUPABASE CONFIG =====
+const SUPABASE_URL = 'https://glpjauqlxeqejyudwlym.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscGphdXFseGVxZWp5dWR3bHltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMjU0MTEsImV4cCI6MjA4NzgwMTQxMX0.uj3Ogz_O7juPsTZ-qoDl7QjwXnAHdWCtRzsjfdBWuBI';
+const BUCKET = 'wallpapers';
+
+async function uploadToSupabase(file, path) {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) throw new Error('上传失败');
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
+}
+
+async function deleteFromSupabase(path) {
+  await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+}
+
+// Load wallpapers from localStorage
+function loadWallpapers() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch { return []; }
+}
+
+function saveWallpapers(list) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch(e) {
+    showToast('存储空间不足，请删除一些壁纸', 'error');
+  }
+}
+
+const UNIFIED_PRICE_KEY = 'unified_price';
+
+function getUnifiedPrice() {
+  const v = localStorage.getItem(UNIFIED_PRICE_KEY);
+  return v !== null ? Number(v) : null;
+}
+
+function saveUnifiedPrice() {
+  const val = document.getElementById('unifiedPriceInput').value.trim();
+  if (val === '') {
+    localStorage.removeItem(UNIFIED_PRICE_KEY);
+    showToast('默认价格已清除');
+  } else {
+    localStorage.setItem(UNIFIED_PRICE_KEY, Number(val));
+    showToast('默认价格已保存：¥' + Number(val).toFixed(2), 'success');
+  }
+}
+
+// ===== GLOBAL PAYMENT QR =====
+const QR_WECHAT_KEY = 'pay_qr_wechat';
+const QR_ALIPAY_KEY = 'pay_qr_alipay';
+
+function getPayQr(type) {
+  return localStorage.getItem(type === 'wechat' ? QR_WECHAT_KEY : QR_ALIPAY_KEY) || null;
+}
+
+function savePayQr(type, src) {
+  try {
+    localStorage.setItem(type === 'wechat' ? QR_WECHAT_KEY : QR_ALIPAY_KEY, src);
+  } catch(e) {
+    showToast('存储失败，图片太大，请压缩后重试', 'error');
+  }
+}
+
+function openPaySettings() {
+  // Load existing unified price
+  const p = getUnifiedPrice();
+  document.getElementById('unifiedPriceInput').value = p !== null ? p : '';
+  // Load existing QRs into thumbs
+  ['wechat','alipay'].forEach(type => {
+    const src = getPayQr(type);
+    const thumb = document.getElementById(type + 'Thumb');
+    const text = document.getElementById(type + 'ThumbText');
+    if (src) {
+      thumb.innerHTML = `<img src="${src}" alt="">`;
+    } else {
+      thumb.innerHTML = `<span id="${type}ThumbText">点击上传</span>`;
+    }
+  });
+  openModal('paySettingsModal');
+}
+
+function handlePayQrUpload(type) {
+  const input = document.getElementById(type + 'QrInput');
+  const file = input.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    savePayQr(type, e.target.result);
+    const thumb = document.getElementById(type + 'Thumb');
+    thumb.innerHTML = `<img src="${e.target.result}" alt="">`;
+    showToast((type === 'wechat' ? '微信' : '支付宝') + '收款码已保存', 'success');
+  };
+  r.readAsDataURL(file);
+}
+
+function switchPayTab(type) {
+  document.getElementById('tabWechat').className = 'pay-tab wechat' + (type === 'wechat' ? ' active' : '');
+  document.getElementById('tabAlipay').className = 'pay-tab alipay' + (type === 'alipay' ? ' active' : '');
+  document.getElementById('panelWechat').className = 'pay-panel' + (type === 'wechat' ? ' active' : '');
+  document.getElementById('panelAlipay').className = 'pay-panel' + (type === 'alipay' ? ' active' : '');
+}
+
+// ===== RENDER =====
+function renderGrid() {
+  const grid = document.getElementById('wallpaperGrid');
+  const wallpapers = loadWallpapers();
+
+  if (wallpapers.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🖼️</div>
+        <p>暂无壁纸，${isAdmin ? '点击上方按钮上传第一张' : '敬请期待'}</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = wallpapers.map(w => `
+    <div class="card" onclick="openPreview(${w.id})">
+      <div class="card-image">
+        <img src="${w.src}" alt="${w.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-placeholder>🖼️</div>'">
+      </div>
+      <div class="card-body">
+        <div class="card-info">
+          <h3>${w.name}</h3>
+          <div class="res">${w.width || ''}${w.width ? ' × ' + w.height : '高清壁纸'}</div>
+        </div>
+        <div class="card-price ${w.price == 0 ? 'free' : ''}">${w.price == 0 ? '免费' : '¥' + Number(w.price).toFixed(2)}</div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-ghost" onclick="event.stopPropagation();openPreview(${w.id})">预览</button>
+        <button class="btn btn-primary" onclick="event.stopPropagation();handleBuyCard(${w.id})">${w.price == 0 ? '免费下载' : '立即购买'}</button>
+      </div>
+      ${isAdmin ? `
+      <div class="admin-card-controls">
+        <button class="btn btn-ghost" onclick="event.stopPropagation();openEdit(${w.id})" style="color:var(--accent2);border-color:rgba(124,109,250,0.3)">编辑</button>
+        <button class="btn btn-danger" onclick="event.stopPropagation();deleteWallpaper(${w.id})">删除</button>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ===== ADMIN =====
+function openAdminLogin() {
+  if (isAdmin) { logoutAdmin(); return; }
+  const pw = localStorage.getItem(ADMIN_KEY);
+  if (!pw) {
+    openModal('setPasswordModal');
+  } else {
+    openModal('loginModal');
+    setTimeout(() => document.getElementById('adminPasswordInput').focus(), 300);
+  }
+}
+
+function setInitialPassword() {
+  const p1 = document.getElementById('newPassword1').value.trim();
+  const p2 = document.getElementById('newPassword2').value.trim();
+  const err = document.getElementById('setPasswordError');
+  if (!p1) { err.textContent = '请输入密码'; err.style.display = 'block'; return; }
+  if (p1 !== p2) { err.textContent = '两次密码不一致'; err.style.display = 'block'; return; }
+  localStorage.setItem(ADMIN_KEY, p1);
+  closeModal('setPasswordModal');
+  activateAdmin();
+  showToast('密码设置成功，已进入管理员模式', 'success');
+}
+
+function verifyAdmin() {
+  const input = document.getElementById('adminPasswordInput').value;
+  const stored = localStorage.getItem(ADMIN_KEY);
+  if (input === stored) {
+    closeModal('loginModal');
+    document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    activateAdmin();
+    showToast('欢迎回来，管理员', 'success');
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('adminPasswordInput').value = '';
+  }
+}
+
+function activateAdmin() {
+  isAdmin = true;
+  document.getElementById('adminBar').style.display = 'flex';
+  document.getElementById('adminStatus').style.display = 'flex';
+  document.getElementById('adminToggleBtn').textContent = '退出管理员';
+  renderGrid();
+}
+
+function logoutAdmin() {
+  isAdmin = false;
+  document.getElementById('adminBar').style.display = 'none';
+  document.getElementById('adminStatus').style.display = 'none';
+  document.getElementById('adminToggleBtn').textContent = '管理员登录';
+  renderGrid();
+  showToast('已退出管理员模式');
+}
+
+// ===== IMAGE UTILS =====
+// In-memory full-res store: id -> ObjectURL (lost on page refresh, but never blurry)
+const fullResMap = new Map();
+
+function storeFullRes(id, file) {
+  // Revoke old URL if exists
+  if (fullResMap.has(id)) URL.revokeObjectURL(fullResMap.get(id));
+  fullResMap.set(id, URL.createObjectURL(file));
+}
+
+function getFullRes(id) {
+  // First: in-memory ObjectURL (current session, highest priority)
+  if (fullResMap.has(id)) return fullResMap.get(id);
+  // Second: Supabase URL from wallpaper data
+  const w = loadWallpapers().find(x => x.id === id);
+  if (w && w.fullUrl) return w.fullUrl;
+  // Fallback: localStorage
+  return localStorage.getItem('wallpaper_full_' + id) || null;
+}
+
+function loadImageFromFile(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===== UPLOAD =====
+function openUploadModal() {
+  const p = getUnifiedPrice();
+  document.getElementById('uploadPrice').value = p !== null ? p : '0';
+  openModal('uploadModal');
+}
+
+async function uploadWallpaper() {
+  const name = document.getElementById('uploadName').value.trim();
+  const file = document.getElementById('uploadFile').files[0];
+  const price = document.getElementById('uploadPrice').value || 0;
+
+  if (!name) { showToast('请输入壁纸名称', 'error'); return; }
+  if (!file) { showToast('请选择图片', 'error'); return; }
+  if (Number(price) > 0 && !getPayQr('wechat') && !getPayQr('alipay')) {
+    showToast('请先在「收款设置」里上传收款码', 'error'); return;
+  }
+
+  showToast('上传中...');
+
+  try {
+    const id = Date.now();
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${id}.${ext}`;
+
+    // Upload original full-res to Supabase
+    const fullUrl = await uploadToSupabase(file, path);
+
+    // Generate thumbnail for grid display
+    const img = await loadImageFromFile(file);
+    const origW = img.naturalWidth, origH = img.naturalHeight;
+    const MAX = 800;
+    const scale = Math.min(1, MAX / Math.max(origW, origH));
+    const thumbW = Math.round(origW * scale), thumbH = Math.round(origH * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = thumbW; canvas.height = thumbH;
+    canvas.getContext('2d').drawImage(img, 0, 0, thumbW, thumbH);
+    const thumbSrc = canvas.toDataURL('image/jpeg', 0.82);
+
+    // Also keep in-memory ObjectURL for this session
+    storeFullRes(id, file);
+
+    const wallpapers = loadWallpapers();
+    wallpapers.unshift({
+      id, name,
+      src: thumbSrc,       // thumbnail for grid
+      fullUrl,             // Supabase URL for preview & download
+      storagePath: path,   // for deletion
+      price: Number(price),
+      width: origW,
+      height: origH,
+      createdAt: new Date().toISOString()
+    });
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(wallpapers));
+    } catch(e) {
+      showToast('本地存储空间不足，请删除旧壁纸', 'error'); return;
+    }
+
+    closeModal('uploadModal');
+    document.getElementById('uploadName').value = '';
+    document.getElementById('uploadFile').value = '';
+    document.getElementById('uploadPrice').value = getUnifiedPrice() ?? '0';
+    renderGrid();
+    showToast('壁纸上传成功', 'success');
+
+  } catch(e) {
+    showToast('上传失败：' + e.message, 'error');
+  }
+}
+
+// ===== EDIT / DELETE =====
+function openEdit(id) {
+  const w = loadWallpapers().find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').value = w.name;
+  document.getElementById('editPrice').value = w.price;
+  openModal('editModal');
+}
+
+function saveEdit() {
+  const id = Number(document.getElementById('editId').value);
+  const name = document.getElementById('editName').value.trim();
+  const price = Number(document.getElementById('editPrice').value) || 0;
+  if (!name) { showToast('名称不能为空', 'error'); return; }
+  const wallpapers = loadWallpapers();
+  const idx = wallpapers.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    wallpapers[idx] = { ...wallpapers[idx], name, price };
+    saveWallpapers(wallpapers);
+    renderGrid();
+    closeModal('editModal');
+    showToast('修改已保存', 'success');
+  }
+}
+
+function deleteWallpaper(id) {
+  if (!confirm('确定要删除这张壁纸吗？')) return;
+  const wallpapers = loadWallpapers();
+  const w = wallpapers.find(x => x.id === id);
+  // Delete from Supabase
+  if (w && w.storagePath) deleteFromSupabase(w.storagePath);
+  // Clean up local
+  if (fullResMap.has(id)) { URL.revokeObjectURL(fullResMap.get(id)); fullResMap.delete(id); }
+  localStorage.removeItem('wallpaper_full_' + id);
+  saveWallpapers(wallpapers.filter(x => x.id !== id));
+  renderGrid();
+  showToast('已删除');
+}
+
+// ===== PREVIEW / BUY =====
+function openPreview(id) {
+  const w = loadWallpapers().find(x => x.id === id);
+  if (!w) return;
+  currentPreview = w;
+  const fullSrc = getFullRes(id);
+  const img = document.getElementById('previewImg');
+  img.onload = fitImage;
+  img.src = fullSrc || w.src;
+  document.getElementById('previewName').textContent = w.name;
+  document.getElementById('previewRes').textContent = w.width ? `${w.width} × ${w.height} px` : '高清壁纸';
+  document.getElementById('previewPrice').textContent = w.price == 0 ? '免费' : '¥' + Number(w.price).toFixed(2);
+  document.getElementById('previewPrice').className = 'preview-modal-price' + (w.price == 0 ? ' free' : '');
+  document.getElementById('previewBuyBtn').textContent = w.price == 0 ? '免费下载' : '立即购买';
+  openModal('previewModal');
+}
+
+function showQrModal(w) {
+  const amount = '¥' + Number(w.price).toFixed(2);
+  document.getElementById('qrWallpaperName').textContent = w.name;
+  document.getElementById('qrAmountWechat').textContent = amount;
+  document.getElementById('qrAmountAlipay').textContent = amount;
+
+  // Wechat QR
+  const wSrc = getPayQr('wechat');
+  document.getElementById('wechatQrBox').style.display = wSrc ? 'inline-block' : 'none';
+  document.getElementById('wechatNoQr').style.display = wSrc ? 'none' : 'flex';
+  if (wSrc) document.getElementById('qrImgWechat').src = wSrc;
+
+  // Alipay QR
+  const aSrc = getPayQr('alipay');
+  document.getElementById('alipayQrBox').style.display = aSrc ? 'inline-block' : 'none';
+  document.getElementById('alipayNoQr').style.display = aSrc ? 'none' : 'flex';
+  if (aSrc) document.getElementById('qrImgAlipay').src = aSrc;
+
+  // Default to wechat tab if available, else alipay
+  switchPayTab(wSrc ? 'wechat' : 'alipay');
+  openModal('qrModal');
+}
+
+function handleBuy() {
+  if (!currentPreview) return;
+  const w = currentPreview;
+  if (w.price == 0) {
+    const url = getFullRes(w.id) || w.src;
+    // If it's a remote URL, open in new tab (can't force-download cross-origin)
+    if (url.startsWith('http')) {
+      window.open(url, '_blank');
+    } else {
+      const a = document.createElement('a');
+      a.href = url; a.download = w.name + '.jpg'; a.click();
+    }
+    showToast('正在下载...', 'success');
+  } else {
+    closeModal('previewModal');
+    showQrModal(w);
+  }
+}
+
+function handleBuyCard(id) {
+  const w = loadWallpapers().find(x => x.id === id);
+  if (!w) return;
+  if (w.price == 0) {
+    const url = getFullRes(w.id) || w.src;
+    if (url.startsWith('http')) {
+      window.open(url, '_blank');
+    } else {
+      const a = document.createElement('a');
+      a.href = url; a.download = w.name + '.jpg'; a.click();
+    }
+    showToast('正在下载...', 'success');
+  } else {
+    showQrModal(w);
+  }
+}
+
+function handlePreviewOverlayClick(e) {
+  if (e.target === e.currentTarget) closeModal('previewModal');
+}
+
+// ===== MODAL UTILS =====
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay:not(#previewModal)').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+// ===== TOAST =====
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 2500);
+}
+
+// ===== ZOOM & PAN =====
+let zoom = 1, fitZoom = 1, panX = 0, panY = 0;
+let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+const MAX_ZOOM = 8;
+
+function getFitZoom() {
+  const wrap = document.getElementById('previewImgWrap');
+  const img = document.getElementById('previewImg');
+  if (!wrap || !img || !img.naturalWidth) return 1;
+  const scaleW = wrap.clientWidth / img.naturalWidth;
+  const scaleH = wrap.clientHeight / img.naturalHeight;
+  return Math.min(scaleW, scaleH);
+}
+
+function applyTransform() {
+  const img = document.getElementById('previewImg');
+  img.style.transform = `translate(calc(-50% + ${panX}px), calc(-50% + ${panY}px)) scale(${zoom})`;
+  // Show % relative to fit (100% = full view), or native px zoom
+  const pct = Math.round((zoom / fitZoom) * 100);
+  document.getElementById('zoomPct').textContent = pct + '%';
+}
+
+function clampPan() {
+  const wrap = document.getElementById('previewImgWrap');
+  const img = document.getElementById('previewImg');
+  if (!wrap || !img) return;
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  const scaledW = img.naturalWidth * zoom, scaledH = img.naturalHeight * zoom;
+  const maxX = Math.max(0, (scaledW - wW) / 2);
+  const maxY = Math.max(0, (scaledH - wH) / 2);
+  panX = Math.max(-maxX, Math.min(maxX, panX));
+  panY = Math.max(-maxY, Math.min(maxY, panY));
+}
+
+function zoomBy(delta, cx, cy) {
+  const wrap = document.getElementById('previewImgWrap');
+  const rect = wrap.getBoundingClientRect();
+  const fx = (cx !== undefined ? cx - rect.left : rect.width / 2) - rect.width / 2;
+  const fy = (cy !== undefined ? cy - rect.top : rect.height / 2) - rect.height / 2;
+  const newZoom = Math.max(fitZoom, Math.min(MAX_ZOOM, zoom + delta * fitZoom));
+  const scale = newZoom / zoom;
+  panX = fx + (panX - fx) * scale;
+  panY = fy + (panY - fy) * scale;
+  zoom = newZoom;
+  clampPan();
+  applyTransform();
+}
+
+function resetZoom() {
+  zoom = fitZoom; panX = 0; panY = 0;
+  applyTransform();
+}
+
+function fitImage() {
+  fitZoom = getFitZoom();
+  zoom = fitZoom; panX = 0; panY = 0;
+  applyTransform();
+}
+
+function initZoomHandlers() {
+  const wrap = document.getElementById('previewImgWrap');
+
+  // Wheel zoom
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.2 : -0.2;
+    zoomBy(delta, e.clientX, e.clientY);
+  }, { passive: false });
+
+  // Double-click reset to fit
+  wrap.addEventListener('dblclick', fitImage);
+
+  // Mouse drag
+  wrap.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    panStartX = panX; panStartY = panY;
+    wrap.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    panX = panStartX + (e.clientX - dragStartX);
+    panY = panStartY + (e.clientY - dragStartY);
+    clampPan();
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+    document.getElementById('previewImgWrap')?.classList.remove('dragging');
+  });
+
+  // Touch pinch + pan
+  let lastTouchDist = null, lastTouchMid = null, touchPanStart = null;
+  wrap.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const [a, b] = e.touches;
+      lastTouchDist = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      lastTouchMid = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+    } else if (e.touches.length === 1) {
+      touchPanStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, px: panX, py: panY };
+    }
+  }, { passive: true });
+  wrap.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const [a, b] = e.touches;
+      const dist = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      const mid = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+      if (lastTouchDist) zoomBy((dist - lastTouchDist) * 0.01, mid.x, mid.y);
+      lastTouchDist = dist; lastTouchMid = mid;
+    } else if (e.touches.length === 1 && touchPanStart) {
+      panX = touchPanStart.px + (e.touches[0].clientX - touchPanStart.x);
+      panY = touchPanStart.py + (e.touches[0].clientY - touchPanStart.y);
+      clampPan();
+      applyTransform();
+    }
+  }, { passive: false });
+  wrap.addEventListener('touchend', () => { lastTouchDist = null; touchPanStart = null; });
+}
+
+// ===== INIT =====
+initZoomHandlers();
+renderGrid();
+</script>
+</body>
+</html>
